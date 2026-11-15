@@ -99,13 +99,13 @@
 
     /* Slide Transition */
     .slide-item {
-      display: none;
-      opacity: 0;
+      display: none !important;
+      opacity: 0 !important;
       transition: opacity 0.2s ease;
     }
     .slide-item.active {
-      display: flex;
-      opacity: 1;
+      display: flex !important;
+      opacity: 1 !important;
     }
 
     @keyframes livePulse {
@@ -187,7 +187,7 @@
   </div>
 
   <!-- SLIDES MAIN VIEWPORT -->
-  <main class="relative z-10 flex-1 overflow-hidden p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+  <main class="relative z-10 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 flex items-center justify-center">
     <div class="w-full max-w-6xl mx-auto h-full flex flex-col justify-center">
 
       <!-- ========================================== -->
