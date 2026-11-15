@@ -17,5 +17,6 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Vercel output
+# Vercel & testing output
 .vercel
+.playwright-mcp/
