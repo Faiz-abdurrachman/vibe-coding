@@ -1,0 +1,6 @@
+*.md
+*.pdf
+.gitignore
+.vscode
+.cursor
+.playwright-mcp/
