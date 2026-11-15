@@ -1,0 +1,22 @@
+{
+  "name": "spec-driven-vibe-coding-slides",
+  "version": "1.0.0",
+  "description": "Interactive Slide Deck: Spec-Driven Vibe Coding & Secure Engineering - SKPL_10 (120 Menit)",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve -l 3000 .",
+    "start": "npx serve -l 3000 .",
+    "build": "echo 'Static web application ready for Vercel deployment'"
+  },
+  "keywords": [
+    "vibe-coding",
+    "secure-coding",
+    "slides",
+    "skpl",
+    "supabase",
+    "tailwind",
+    "glassmorphism"
+  ],
+  "author": "Faiz (Data Sorcerers Yogyakarta)",
+  "license": "MIT"
+}

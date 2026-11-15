@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spec-Driven Vibe Coding & Secure Engineering | Faiz</title>
+  
+  <!-- Font Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            sky: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Sky Blue Glassmorphism Design System */
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.85);
+      --glass-card-sub: rgba(240, 249, 255, 0.65);
+      --glass-card-sub-border: rgba(186, 230, 253, 0.6);
+      --glass-code: rgba(15, 23, 42, 0.92);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f0f9ff;
+      background-image: 
+        radial-gradient(at 10% 15%, rgba(224, 242, 254, 0.9) 0px, transparent 50%),
+        radial-gradient(at 90% 20%, rgba(186, 230, 253, 0.8) 0px, transparent 45%),
+        radial-gradient(at 30% 85%, rgba(125, 211, 252, 0.45) 0px, transparent 50%),
+        radial-gradient(at 85% 80%, rgba(224, 242, 254, 0.9) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: #0f172a;
+    }
+
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 12px 36px -4px rgba(2, 132, 199, 0.08), 0 4px 16px -2px rgba(15, 23, 42, 0.03);
+    }
+
+    .glass-card {
+      background: var(--glass-card-sub);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--glass-card-sub-border);
+      box-shadow: 0 4px 14px 0 rgba(2, 132, 199, 0.04);
+    }
+
+    .glass-code-dark {
+      background: var(--glass-code);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.35);
+    }
+
+    /* Ambient floating lights */
+    .ambient-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(70px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Custom Scrollbar for code blocks and notes */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.6);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(14, 165, 233, 0.3);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(2, 132, 199, 0.6);
+    }
+
+    /* Slide transition */
+    .slide-view {
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .slide-view.hidden-slide {
+      display: none !important;
+      opacity: 0;
+      transform: scale(0.985);
+    }
+    .slide-view.active-slide {
+      display: flex !important;
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Pulse animation for live dot */
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.55; transform: scale(1.15); }
+    }
+    .pulse-live {
+      animation: subtlePulse 2.4s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden text-slate-800 antialiased select-none">
+
+  <!-- Ambient Light Blobs -->
+  <div class="ambient-orb w-[420px] h-[420px] bg-sky-300/30 -top-20 -left-20"></div>
+  <div class="ambient-orb w-[500px] h-[500px] bg-blue-200/40 top-1/2 -right-32"></div>
+  <div class="ambient-orb w-[400px] h-[400px] bg-sky-200/30 -bottom-20 left-1/3"></div>
+
+  <!-- TOP APP BAR -->
+  <header class="relative z-30 h-14 border-b border-white/60 bg-white/70 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shadow-sm">
+    <!-- Left: Identity & Badges -->
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-sky-600 text-white font-bold text-sm shadow-sm shadow-sky-600/30">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </span>
+        <div class="flex flex-col">
+          <span class="text-xs font-bold tracking-tight text-slate-900 uppercase">SPEC-DRIVEN VIBE CODING</span>
+          <span class="text-[10px] text-sky-700 font-medium tracking-wide">PNC DAY 4 &bull; SKPL 10 KAS KELAS</span>
+        </div>
+      </div>
+
+      <div class="hidden lg:flex items-center space-x-2 pl-4 border-l border-slate-200/80">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100/90 text-sky-800 border border-sky-200">
+          120 MENIT EKSEKUSI
+        </span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 pulse-live"></span>
+          ZERO-INSTALL CLOUD
+        </span>
+      </div>
+    </div>
+
+    <!-- Center: Slide Progress Pill -->
+    <div class="flex items-center space-x-2 bg-sky-100/70 border border-sky-200/80 px-3 py-1 rounded-full shadow-inner">
+      <span class="text-xs font-semibold text-slate-600">SLIDE</span>
+      <span id="currentSlideNum" class="text-xs font-bold text-sky-700 font-mono">01</span>
+      <span class="text-xs text-slate-400 font-mono">/</span>
+      <span class="text-xs font-semibold text-slate-500 font-mono">12</span>
+    </div>
+
+    <!-- Right: Presentation Utility Controls -->
+    <div class="flex items-center space-x-1.5 sm:space-x-2">
+      <!-- Overview Grid Button -->
+      <button id="btnOverview" title="Buka Grid Slide (Shortcut: G)" class="p-1.5 sm:px-3 sm:py-1.5 rounded-lg text-slate-700 hover:text-sky-700 hover:bg-sky-50 border border-transparent hover:border-sky-200 transition text-xs font-semibold flex items-center space-x-1.5">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span class="hidden md:inline">Grid (G)</span>
+      </button>
+
+      <!-- Speaker Notes Drawer Toggle -->
+      <button id="btnNotes" title="Speaker Notes Faiz (Shortcut: N)" class="p-1.5 sm:px-3 sm:py-1.5 rounded-lg text-slate-700 hover:text-sky-700 hover:bg-sky-50 border border-transparent hover:border-sky-200 transition text-xs font-semibold flex items-center space-x-1.5">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span class="hidden md:inline">Notes (N)</span>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button id="btnFullscreen" title="Layar Penuh (Shortcut: F)" class="p-1.5 rounded-lg text-slate-700 hover:text-sky-700 hover:bg-sky-50 border border-transparent hover:border-sky-200 transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- LINEAR PROGRESS BAR -->
+  <div class="relative z-30 w-full h-1 bg-sky-200/60">
+    <div id="slideProgressBar" class="h-full bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 transition-all duration-300 ease-out" style="width: 8.33%;"></div>
+  </div>
+
+  <!-- SLIDES MAIN CONTAINER -->
+  <main class="relative z-10 flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-6 lg:p-8 flex items-center justify-center">
+    <div class="w-full max-w-7xl mx-auto h-full flex flex-col justify-center">
+
+      <!-- ========================================== -->
+      <!-- SLIDE 01: COVER & ORIENTASI               -->
+      <!-- ========================================== -->
+      <section id="slide-1" class="slide-view active-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 lg:p-12 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-12 shadow-xl border border-white/80">
+          
+          <!-- Left Column: Workshop Header & Titles -->
+          <div class="flex-1 space-y-6 text-left">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-sky-100 text-sky-800 border border-sky-300">
+                PUNCAK WORKSHOP DAY 4
+              </span>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/80 text-slate-700 border border-slate-200">
+                120 MENIT INTENSIF
+              </span>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-live"></span>
+                FULL-STACK &amp; SECURITY
+              </span>
+            </div>
+
+            <div class="space-y-3">
+              <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12]">
+                Spec-Driven <br class="hidden sm:inline">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-sky-700 to-sky-900">
+                  Vibe Coding
+                </span>
+                <span class="text-slate-800">&amp; Secure Coding</span>
+              </h1>
+              <p class="text-base sm:text-lg text-slate-600 font-medium max-w-2xl leading-relaxed">
+                Transformasi Dokumen SKPL Menjadi Aplikasi Web Kas Kelas Full-Stack yang Terproteksi, Teruji DevTools, dan Live di Vercel dalam 120 Menit.
+              </p>
+            </div>
+
+            <!-- Presenter Badge & Meta Info -->
+            <div class="pt-4 flex flex-wrap items-center gap-6 border-t border-slate-200/80">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-sky-400 flex items-center justify-center text-white font-bold shadow-md shadow-sky-500/20">
+                  F
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-slate-900">Faiz</div>
+                  <div class="text-xs text-slate-500 font-medium">Narasumber &bull; Data Sorcerers Yogyakarta</div>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-4 text-xs font-semibold text-slate-500">
+                <div class="flex items-center space-x-1.5">
+                  <svg class="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>09.15 – 11.15 WIB</span>
+                </div>
+                <div class="flex items-center space-x-1.5">
+                  <svg class="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <span>88 Peserta &bull; 5 Prodi PNC</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Interactive Glass Mockup Preview -->
+          <div class="w-full lg:w-[420px] glass-card rounded-2xl p-6 border border-white/90 shadow-lg space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-sky-200/60">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block pulse-live"></span>
+                <span class="text-xs font-bold text-slate-800 tracking-wide">CASHFLOW TRACKER</span>
+              </div>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-semibold border border-sky-300">SKPL_10</span>
+            </div>
+
+            <!-- 3 Summary Mini Cards -->
+            <div class="grid grid-cols-1 gap-2.5">
+              <div class="p-3 rounded-xl bg-white/80 border border-sky-100 flex items-center justify-between">
+                <div>
+                  <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Saldo Akhir</div>
+                  <div class="text-lg font-extrabold text-sky-700 font-mono">Rp 125.000</div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">Surplus Kas</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                  <div class="text-[10px] font-semibold text-emerald-700 uppercase">Pemasukan</div>
+                  <div class="text-sm font-bold text-emerald-800 font-mono">Rp 150.000</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200">
+                  <div class="text-[10px] font-semibold text-rose-700 uppercase">Pengeluaran</div>
+                  <div class="text-sm font-bold text-rose-800 font-mono">Rp 25.000</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Security Badge Footer -->
+            <div class="p-3 rounded-xl bg-slate-900 text-slate-200 text-xs flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span class="font-mono text-[11px]">Anti-XSS &bull; TC-01 Locked</span>
+              </div>
+              <span class="text-[10px] font-mono text-sky-300 bg-sky-950 px-2 py-0.5 rounded border border-sky-700">Supabase DB</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 02: KONTEKS & HAK VETO BAB 6         -->
+      <!-- ========================================== -->
+      <section id="slide-2" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <!-- Header -->
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>KONTEKS &amp; REGULASI TEKNIS</span>
+              <span>&bull;</span>
+              <span>WEWENANG BAB 6 SKPL</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Mengapa Tech Stack Di-Upgrade? (Wewenang Mutlak Bab 6)
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Menghilangkan hambatan lokal XAMPP/MySQL agar seluruh 88 peserta sukses rilis aplikasi dalam 120 menit.
+            </p>
+          </div>
+
+          <!-- 4 Stat Bento Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div class="glass-card rounded-2xl p-4 sm:p-5 border border-white/90">
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Jumlah Peserta</div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-sky-700 font-mono mt-1">88</div>
+              <div class="text-xs text-slate-600 mt-1 font-medium">Mahasiswa Semester 1 &amp; 2</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 sm:p-5 border border-white/90">
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Spektrum Studi</div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-slate-800 font-mono mt-1">5 Prodi</div>
+              <div class="text-xs text-slate-600 mt-1 font-medium">RKS, TI, TRPL, ALKS, TRM</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 sm:p-5 border border-white/90">
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Target Eksekusi</div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-emerald-700 font-mono mt-1">120 Menit</div>
+              <div class="text-xs text-slate-600 mt-1 font-medium">Zero-to-Deploy Production</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 sm:p-5 border border-white/90">
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Instalasi Lokal</div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 font-mono mt-1">0 MB</div>
+              <div class="text-xs text-slate-600 mt-1 font-medium">Bebas Konflik Port 3306</div>
+            </div>
+          </div>
+
+          <!-- Comparison Table Card -->
+          <div class="glass-card rounded-2xl p-5 border border-sky-200/80 space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-sky-200/60">
+              <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Komparasi Arsitektur Stack: Asli Panitia vs Upgrade Narsum Faiz</span>
+              <span class="text-[11px] font-mono font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">HAK VETO BAB 6 BERLAKU</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200 space-y-1.5">
+                <div class="flex items-center space-x-2 text-rose-800 font-bold">
+                  <svg class="w-4 h-4 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                  </svg>
+                  <span>Tertulis di Template PDF Asli (Ditinggalkan)</span>
+                </div>
+                <p class="text-slate-700 font-mono text-[11px]">HTML/CSS/JS + PHP / Node.js + MySQL / MariaDB (XAMPP)</p>
+                <div class="text-rose-700 text-[11px] leading-relaxed">
+                  Risiko fatal: 2 jam habis untuk troubleshooting port bentrok, driver database rusak, dan tidak dapat diakses live via HP/Vercel tanpa tunneling rumit.
+                </div>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
+                <div class="flex items-center space-x-2 text-emerald-800 font-bold">
+                  <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <span>Standar Modern Upgrade Narsum (Dijalankan Hari Ini)</span>
+                </div>
+                <p class="text-emerald-900 font-mono text-[11px] font-semibold">HTML5 + Tailwind CSS + Vanilla JS + Supabase (Cloud PostgreSQL) + Vercel</p>
+                <div class="text-emerald-800 text-[11px] leading-relaxed">
+                  Semua mahasiswa langsung running di browser, database cloud gratis dengan RLS, aman dari XSS, dan langsung memiliki URL live portofolio HTTPS resmi.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 03: MINDSET SHIFT                    -->
+      <!-- ========================================== -->
+      <section id="slide-3" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>PARADIGMA REKAYASA PERANGKAT LUNAK</span>
+              <span>&bull;</span>
+              <span>ENGINEERING STANDARDS</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Mindset Shift: Blind Prompting vs Spec-Driven Vibe Coding
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              AI tanpa kendali menghasilkan kode rentan. Insinyur sejati memagari AI dengan Triad Dokumen Pengendali.
+            </p>
+          </div>
+
+          <!-- 2 Columns Comparative Matrix -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
+            
+            <!-- Left: Blind Prompting -->
+            <div class="glass-card rounded-2xl p-5 border border-rose-200/90 flex flex-col justify-between space-y-4">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                    ANTI-PATTERN: BLIND PROMPTING
+                  </span>
+                  <span class="text-xs font-mono text-slate-400">Pola Amatir</span>
+                </div>
+
+                <div class="p-3 bg-slate-900 rounded-xl text-rose-300 font-mono text-xs border border-rose-900/50">
+                  <span class="text-slate-500">// Prompt sembarang tanpa pagar:</span><br>
+                  "Tolong bikinin aplikasi kas kelas yang keren dong, bebas pakai apa aja..."
+                </div>
+
+                <div class="space-y-2 text-xs text-slate-700">
+                  <div class="flex items-start space-x-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 flex-shrink-0"></span>
+                    <span><strong>Halusinasi Fitur:</strong> Tombol Edit/Hapus hilang karena tidak tertulis jelas.</span>
+                  </div>
+                  <div class="flex items-start space-x-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 flex-shrink-0"></span>
+                    <span><strong>Celah XSS Terbuka:</strong> AI secara otomatis memakai <code>.innerHTML</code> yang mudah disuntik script hacker.</span>
+                  </div>
+                  <div class="flex items-start space-x-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 flex-shrink-0"></span>
+                    <span><strong>Test Case Gagal:</strong> Nominal negatif diterima begitu saja tanpa validasi TC-01.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-rose-100/60 border border-rose-200 text-[11px] font-semibold text-rose-900 text-center">
+                Hasil: Aplikasi rapuh, tidak lolos pengujian SKPL, dan rawan eksploitasi.
+              </div>
+            </div>
+
+            <!-- Right: Spec-Driven Vibe Coding -->
+            <div class="glass-card rounded-2xl p-5 border border-sky-300 flex flex-col justify-between space-y-4 shadow-md shadow-sky-500/5">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-300">
+                    PRODUCTION STANDARD: SPEC-DRIVEN
+                  </span>
+                  <span class="text-xs font-mono text-emerald-600 font-bold">Standard Industri</span>
+                </div>
+
+                <div class="p-3 bg-slate-900 rounded-xl text-sky-300 font-mono text-xs border border-sky-900/50">
+                  <span class="text-slate-500">// Kendalikan AI dengan Triad Dokumen:</span><br>
+                  "Implementasikan fungsi CRUD mengacu pada @PRD.md dan terapkan aturan ketat di @RULES.md"
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div class="p-2.5 rounded-xl bg-white/80 border border-sky-200">
+                    <div class="font-bold text-sky-800 font-mono text-[11px]">PRD.md</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">Otak Bisnis &amp; Skema Data</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-white/80 border border-sky-200">
+                    <div class="font-bold text-sky-800 font-mono text-[11px]">DESIGN.md</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">Aturan Visual &amp; Layout</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-white/80 border border-emerald-300 bg-emerald-50/40">
+                    <div class="font-bold text-emerald-800 font-mono text-[11px]">RULES.md</div>
+                    <div class="text-[10px] text-emerald-700 mt-0.5">Pagar Keamanan Siber</div>
+                  </div>
+                </div>
+
+                <div class="space-y-1.5 text-xs text-slate-700">
+                  <div class="flex items-start space-x-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></span>
+                    <span><strong>100% Deterministic:</strong> AI patuh pada nama kolom, constraint, dan flow panitia.</span>
+                  </div>
+                  <div class="flex items-start space-x-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></span>
+                    <span><strong>Zero Security Vulnerabilities:</strong> Bebas celah XSS dan aman dari kebocoran key.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-emerald-100/70 border border-emerald-300 text-[11px] font-semibold text-emerald-900 text-center">
+                Hasil: Aplikasi production-ready, clean code, dan siap diuji live hacking.
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 04: MASTER ROADMAP 120 MENIT         -->
+      <!-- ========================================== -->
+      <section id="slide-4" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>CHRONOLOGICAL FLIGHT PLAN</span>
+              <span>&bull;</span>
+              <span>MENIT DEMI MENIT</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Master Roadmap 6 Langkah (Eksekusi 120 Menit)
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Setiap peserta mengetahui posisi tepatnya pada timeline agar tidak ada satupun yang tertinggal.
+            </p>
+          </div>
+
+          <!-- 6 Steps Timeline Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 flex-1">
+            
+            <!-- Step 1 -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between border border-white/90 hover:border-sky-300 transition">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-mono font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">01</span>
+                  <span class="text-[10px] font-mono text-slate-500">15m</span>
+                </div>
+                <div class="text-xs font-bold text-slate-900 mb-1">Bedah SKPL &amp; PRD.md</div>
+                <div class="text-[11px] text-slate-600 leading-snug">
+                  Ekstraksi PDF ke berkas spesifikasi teknis dan prompt UI Google Stitch.
+                </div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-sky-100 text-[10px] font-mono text-sky-800 font-semibold">
+                09.25 - 09.40
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between border border-white/90 hover:border-sky-300 transition">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-mono font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">02</span>
+                  <span class="text-[10px] font-mono text-slate-500">20m</span>
+                </div>
+                <div class="text-xs font-bold text-slate-900 mb-1">UI Google Stitch</div>
+                <div class="text-[11px] text-slate-600 leading-snug">
+                  Generate dashboard responsif via Google Stitch lalu ekspor ke VS Code.
+                </div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-sky-100 text-[10px] font-mono text-sky-800 font-semibold">
+                09.40 - 10.00
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between border border-white/90 hover:border-sky-300 transition">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-mono font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">03</span>
+                  <span class="text-[10px] font-mono text-slate-500">10m</span>
+                </div>
+                <div class="text-xs font-bold text-slate-900 mb-1">Pagar RULES.md</div>
+                <div class="text-[11px] text-slate-600 leading-snug">
+                  Pasang aturan anti-XSS (.textContent), validasi TC-01, dan anti-leak .gitignore.
+                </div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-sky-100 text-[10px] font-mono text-sky-800 font-semibold">
+                10.00 - 10.10
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between border border-sky-300 bg-sky-50/50 hover:border-sky-400 transition">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-mono font-bold text-white bg-sky-700 px-2 py-0.5 rounded">04</span>
+                  <span class="text-[10px] font-mono text-sky-700 font-bold">30m</span>
+                </div>
+                <div class="text-xs font-bold text-slate-900 mb-1">Supabase DB &amp; Wiring</div>
+                <div class="text-[11px] text-slate-600 leading-snug">
+                  DDL PostgreSQL, RLS Policy, dan integrasi CDN Supabase JS ke frontend.
+                </div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-sky-200 text-[10px] font-mono text-sky-900 font-bold">
+                10.10 - 10.40
+              </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between border border-white/90 hover:border-sky-300 transition">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-mono font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">05</span>
+                  <span class="text-[10px] font-mono text-slate-500">25m</span>
+                </div>
+                <div class="text-xs font-bold text-slate-900 mb-1">DevTools &amp; Live XSS</div>
+                <div class="text-[11px] text-slate-600 leading-snug">
+                  Uji Black Box TC-01, TC-02 via F12 dan simulasi live peretasan payload XSS.
+                </div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-sky-100 text-[10px] font-mono text-sky-800 font-semibold">
+                10.40 - 11.05
+              </div>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between border border-white/90 hover:border-sky-300 transition">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">06</span>
+                  <span class="text-[10px] font-mono text-emerald-700 font-bold">10m</span>
+                </div>
+                <div class="text-xs font-bold text-slate-900 mb-1">Deploy ke Vercel</div>
+                <div class="text-[11px] text-slate-600 leading-snug">
+                  Cek gitignore, push repositori GitHub, auto-deploy Vercel, dapat live link!
+                </div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-emerald-100 text-[10px] font-mono text-emerald-800 font-bold">
+                11.05 - 11.15
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Banner -->
+          <div class="p-3.5 rounded-2xl bg-white/70 border border-sky-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="flex items-center space-x-2">
+              <svg class="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span class="text-slate-700 font-medium">
+                Pola di atas adalah template standar industri yang berlaku universal untuk seluruh 10 modul SKPL.
+              </span>
+            </div>
+            <span class="text-[11px] font-mono text-slate-500 font-bold">FAIZ &bull; DATA SORCERERS</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 05: PEMETAAN 10 SKPL & FOCUS SKPL_10  -->
+      <!-- ========================================== -->
+      <section id="slide-5" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>CAKUPAN STUDI KASUS WORKSHOP</span>
+              <span>&bull;</span>
+              <span>UNIVERSAL ADAPTABILITY</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Pemetaan 10 Modul SKPL &amp; Studi Kasus Utama (SKPL_10)
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Saya mendemokan live menggunakan SKPL_10 Kas Kelas. Peserta SKPL 1–9 cukup mengganti teks spesifikasi.
+            </p>
+          </div>
+
+          <!-- Bento Grid: SKPL 1-9 Matrix + SKPL 10 Showcase -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+            
+            <!-- Left: SKPL 1-9 Matrix (7 cols) -->
+            <div class="lg:col-span-7 glass-card rounded-2xl p-5 border border-white/90 flex flex-col justify-between space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-sky-100">
+                <span class="text-xs font-bold text-slate-800 uppercase tracking-wide">10 Studi Kasus Dokumen SKPL Politeknik Negeri Cilacap</span>
+                <span class="text-[10px] font-mono text-sky-700 bg-sky-100 px-2 py-0.5 rounded font-semibold">100% REUSABLE</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-[11px]">
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_01: Absensi Mahasiswa</div>
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_02: Perpustakaan Digital</div>
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_03: Nilai Akademik</div>
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_04: Peminjaman Alat Lab</div>
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_05: Layanan Pengaduan</div>
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_06: Jadwal Praktikum</div>
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_07: Voting BEM Kampus</div>
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_08: Inventaris Jurusan</div>
+                <div class="p-2 rounded-lg bg-white/70 border border-slate-200/80 font-mono text-slate-700">SKPL_09: Pendaftaran Magang</div>
+                <div class="p-2 rounded-lg bg-sky-100/90 border border-sky-300 font-mono font-bold text-sky-800">SKPL_10: Kas Kelas (Live Demo)</div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-[11px] text-slate-600 flex items-center space-x-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-600 flex-shrink-0"></span>
+                <span>Semua modul memiliki esensi identik: Form Input &bull; Tabel Mutasi/Data &bull; Validasi Logika &bull; Database Cloud.</span>
+              </div>
+            </div>
+
+            <!-- Right: SKPL_10 Detailed Spec (5 cols) -->
+            <div class="lg:col-span-5 glass-card rounded-2xl p-5 border border-sky-300 flex flex-col justify-between space-y-3 bg-gradient-to-b from-white/90 to-sky-50/60 shadow-sm">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-white bg-sky-700 px-2.5 py-0.5 rounded">FOKUS DEMO: SKPL_10</span>
+                  <span class="text-xs font-bold text-slate-800">CASHFLOW TRACKER</span>
+                </div>
+
+                <div class="text-xs text-slate-600 leading-relaxed">
+                  Aplikasi pencatatan kas masuk &amp; keluar transparan dengan kalkulasi otomatis dan riwayat mutasi.
+                </div>
+
+                <!-- Database Structure Card -->
+                <div class="p-3 rounded-xl bg-slate-900 text-slate-200 font-mono text-xs space-y-1">
+                  <div class="text-sky-400 font-bold text-[11px]">Tabel: cash_transactions</div>
+                  <div class="text-[11px] text-slate-300">&bull; id: BIGINT PRIMARY KEY</div>
+                  <div class="text-[11px] text-slate-300">&bull; tanggal: DATE DEFAULT CURRENT_DATE</div>
+                  <div class="text-[11px] text-slate-300">&bull; jenis_transaksi: 'Masuk' | 'Keluar'</div>
+                  <div class="text-[11px] text-slate-300">&bull; nominal: NUMERIC(12,2) CHECK(&gt; 0)</div>
+                  <div class="text-[11px] text-slate-300">&bull; keterangan: TEXT (Anti-XSS)</div>
+                </div>
+
+                <!-- 4 Requirement Tags -->
+                <div class="grid grid-cols-2 gap-1.5 text-[10px] font-semibold text-slate-700">
+                  <span class="p-1.5 rounded bg-white border border-slate-200 text-center">REQ-01: Catat Transaksi</span>
+                  <span class="p-1.5 rounded bg-white border border-slate-200 text-center">REQ-02: Kalkulasi Saldo</span>
+                  <span class="p-1.5 rounded bg-white border border-slate-200 text-center">REQ-03: Filter &amp; Search</span>
+                  <span class="p-1.5 rounded bg-white border border-slate-200 text-center">REQ-04: Edit &amp; Delete CRUD</span>
+                </div>
+              </div>
+
+              <div class="text-[11px] font-bold text-sky-800 text-center pt-2 border-t border-sky-200">
+                Lengkap CRUD 4 Requirement sesuai Bab 2 &amp; 5 Dokumen SKPL!
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 06: LANGKAH 1 - BEDAH SKPL & PRD     -->
+      <!-- ========================================== -->
+      <section id="slide-6" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>LANGKAH 1 &bull; MENIT 00–15</span>
+              <span>&bull;</span>
+              <span>FORMALISASI SPESIFIKASI</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Bedah SKPL &amp; Konstruksi File PRD.md
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Mengubah klausul PDF panitia menjadi berkas instruksi teknis terstruktur sebagai otak utama AI.
+            </p>
+          </div>
+
+          <!-- Code Split: Left Prompt Generator, Right Test Cases & Output -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+            
+            <!-- Left: Prompt Generator (7 cols) -->
+            <div class="lg:col-span-7 glass-code-dark rounded-2xl p-4 flex flex-col justify-between space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-sky-900/60">
+                <span class="text-xs font-mono font-bold text-sky-300">Prompt Ekstraksi SKPL -&gt; PRD.md (Kirim ke Chat AI)</span>
+                <button onclick="copyToClipboard('promptPRD')" class="text-[11px] font-mono px-2.5 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white font-semibold transition flex items-center space-x-1">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Salin Prompt</span>
+                </button>
+              </div>
+
+              <pre id="promptPRD" class="text-[11px] font-mono text-slate-300 overflow-y-auto max-h-[220px] leading-relaxed p-2 select-text">Saya adalah mahasiswa workshop Vibe Coding yang sedang membangun aplikasi web:
+- Nama: Sistem Manajemen Kas Kelas (Cashflow Tracker) - SKPL_10
+- Stack Teknis (Ketentuan Bab 6): HTML5, Tailwind CSS, Vanilla JS, Supabase DB.
+- Kebutuhan Fungsional (CRUD):
+  1. REQ-01: Catat kas masuk dan keluar (tanggal, nominal, keterangan).
+  2. REQ-02: Kalkulasi otomatis Total Pemasukan, Total Pengeluaran, Saldo Akhir.
+  3. REQ-03: Tabel riwayat mutasi dengan pencarian &amp; filter jenis.
+  4. REQ-04: Fitur Edit &amp; Hapus transaksi real-time.
+- Skema Database: cash_transactions (id, tanggal, jenis_transaksi, nominal, keterangan)
+- Black Box Test Case Wajib:
+  - TC-01: Tolak nominal &lt;= 0 (contoh -50000) dengan pesan: "Nominal harus lebih dari 0".
+  - TC-02: Input pemasukan 20000, data masuk &amp; total saldo bertambah Rp 20.000.
+
+TUGAS: Buatkan file PRD.md yang terstruktur sebagai acuan coding di VS Code!</pre>
+
+              <div class="text-[10px] font-mono text-slate-400 pt-2 border-t border-slate-800">
+                Kirim ke ChatGPT, Claude, atau Gemini lalu simpan hasilnya sebagai file PRD.md di folder proyek VS Code.
+              </div>
+            </div>
+
+            <!-- Right: Test Cases & Outcomes (5 cols) -->
+            <div class="lg:col-span-5 glass-card rounded-2xl p-5 border border-sky-200 flex flex-col justify-between space-y-3">
+              <div>
+                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block mb-2">Test Case Wajib Panitia (Halaman 2 PDF SKPL)</span>
+                
+                <div class="space-y-2.5 text-xs">
+                  <div class="p-3 rounded-xl bg-rose-50/80 border border-rose-200">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-bold text-rose-800 font-mono">TC-01: Tolak Nominal Negatif</span>
+                      <span class="text-[10px] font-mono bg-rose-200 text-rose-900 px-1.5 py-0.5 rounded font-bold">CRITICAL</span>
+                    </div>
+                    <div class="text-slate-600 text-[11px]">
+                      Input: <code>Nominal: -50000</code><br>
+                      Hasil yang diharapkan: Sistem menolak simpan &amp; memunculkan teks persis: <span class="font-bold text-rose-700">"Nominal harus lebih dari 0"</span>.
+                    </div>
+                  </div>
+
+                  <div class="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-bold text-emerald-800 font-mono">TC-02: Input Pemasukan Valid</span>
+                      <span class="text-[10px] font-mono bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded font-bold">CRITICAL</span>
+                    </div>
+                    <div class="text-slate-600 text-[11px]">
+                      Input: <code>Jenis: Masuk, Nominal: 20000</code><br>
+                      Hasil: Data tersimpan di Supabase, saldo akhir bertambah <span class="font-bold text-emerald-700">+Rp 20.000</span>.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-sky-100/70 border border-sky-300 text-[11px] font-semibold text-sky-900 text-center">
+                PRD.md mengunci agar AI tidak melupakan kedua test case ini!
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 07: LANGKAH 2 - GOOGLE STITCH UI     -->
+      <!-- ========================================== -->
+      <section id="slide-7" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>LANGKAH 2 &bull; MENIT 15–35</span>
+              <span>&bull;</span>
+              <span>INTEGRASI UI/UX GOOGLE STITCH</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Generate UI di Google Stitch &amp; Bawa ke VS Code
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Dua jalur implementasi desain: Jalur A (Demo MCP Server Narsum) vs Jalur B (Fast Export Peserta).
+            </p>
+          </div>
+
+          <!-- Dual Pathway Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1">
+            
+            <!-- Pathway A: Demo MCP Faiz -->
+            <div class="glass-card rounded-2xl p-5 border border-sky-200 flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-300">
+                    JALUR A: DEMO MCP SERVER (NARASUMBER)
+                  </span>
+                  <span class="text-[10px] font-mono text-slate-500">Adit Panitia Topic</span>
+                </div>
+                <div class="text-xs text-slate-700 font-medium leading-relaxed mb-3">
+                  Menjawab pertanyaan panitia seputar <strong>Model Context Protocol (MCP)</strong>: AI Agent di IDE langsung menarik desain dari Google Stitch via protokol resmi.
+                </div>
+
+                <div class="p-3 bg-slate-900 rounded-xl text-sky-300 font-mono text-[11px] space-y-1">
+                  <div class="text-slate-500">// Konfigurasi .vscode/mcp.json</div>
+                  <div>{</div>
+                  <div class="pl-3">"servers": {</div>
+                  <div class="pl-6">"google-stitch": {</div>
+                  <div class="pl-9">"url": "https://stitch.googleapis.com/mcp",</div>
+                  <div class="pl-9">"env": { "API_KEY": "${STITCH_KEY}" }</div>
+                  <div class="pl-6">}</div>
+                  <div class="pl-3">}</div>
+                  <div>}</div>
+                </div>
+              </div>
+
+              <div class="text-[11px] text-slate-500 font-medium">
+                AI di IDE dapat langsung membaca context desain tanpa copy-paste manual.
+              </div>
+            </div>
+
+            <!-- Pathway B: Peserta Direct Export -->
+            <div class="glass-card rounded-2xl p-5 border border-emerald-300 bg-emerald-50/30 flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    JALUR B: DIRECT EXPORT (88 PESERTA WORKSHOP)
+                  </span>
+                  <span class="text-[10px] font-mono text-emerald-700 font-bold">REKOMENDASI CEPAT</span>
+                </div>
+                <div class="text-xs text-slate-700 font-medium leading-relaxed mb-3">
+                  Agar 88 peserta tidak mengalami kendala konfigurasi port atau token, gunakan 3 klik cepat berikut:
+                </div>
+
+                <div class="space-y-2 text-xs">
+                  <div class="p-2.5 rounded-xl bg-white/80 border border-emerald-200 flex items-center space-x-2.5">
+                    <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                    <span class="text-slate-800">Paste prompt UI ke <strong>stitch.withgoogle.com</strong></span>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-white/80 border border-emerald-200 flex items-center space-x-2.5">
+                    <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                    <span class="text-slate-800">Klik tombol <strong>Export HTML / Tailwind</strong> di pojok kanan atas</span>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-white/80 border border-emerald-200 flex items-center space-x-2.5">
+                    <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                    <span class="text-slate-800">Paste ke <strong>index.html</strong> di VS Code &amp; klik <strong>Go Live</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-emerald-100 text-emerald-900 font-bold text-center text-xs">
+                Zero Friction: Tampilan dashboard kas kelas langsung jalan di localhost!
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 08: LANGKAH 3 - RULES.MD SECURITY    -->
+      <!-- ========================================== -->
+      <section id="slide-8" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>LANGKAH 3 &bull; MENIT 35–45</span>
+              <span>&bull;</span>
+              <span>PAGAR KEAMANAN SIBER</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Pasang Pagar Pengaman RULES.md di VS Code
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Khusus mahasiswa RKS &amp; TI: Kita melarang AI memakai pola rentan sebelum menulis satu baris kode JavaScript pun.
+            </p>
+          </div>
+
+          <!-- 4 Security Pillars Grid (2x2) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+            
+            <!-- Pillar 1: Anti-XSS -->
+            <div class="glass-card rounded-2xl p-4 border border-rose-300 bg-rose-50/30 flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-rose-800 uppercase tracking-wide">PILAR 1: ANTI-XSS DOM POLICY</span>
+                  <span class="text-[10px] font-mono bg-rose-100 text-rose-800 px-2 py-0.5 rounded font-bold">MUTLAK</span>
+                </div>
+                <div class="text-xs text-slate-700 leading-relaxed space-y-1">
+                  <div><strong class="text-rose-700">Dilarang Keras:</strong> Merender kolom <code>keterangan</code> dari user menggunakan <code>.innerHTML</code>.</div>
+                  <div><strong class="text-emerald-700">Wajib:</strong> Gunakan <code>.textContent</code> atau sanitasi ketat <code>escapeHtml()</code> agar tag script tidak pernah dieksekusi browser.</div>
+                </div>
+              </div>
+              <div class="p-2 bg-slate-900 rounded-lg text-rose-300 font-mono text-[10px]">
+                element.textContent = data.keterangan; // 100% AMAN DARI XSS
+              </div>
+            </div>
+
+            <!-- Pillar 2: Input Validation TC-01 -->
+            <div class="glass-card rounded-2xl p-4 border border-sky-300 flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-sky-800 uppercase tracking-wide">PILAR 2: VALIDASI INPUT (TC-01)</span>
+                  <span class="text-[10px] font-mono bg-sky-100 text-sky-800 px-2 py-0.5 rounded font-bold">CLIENT-SIDE</span>
+                </div>
+                <div class="text-xs text-slate-700 leading-relaxed space-y-1">
+                  <div>Sebelum mengirim payload ke Supabase, periksa <code>nominal &gt; 0</code>.</div>
+                  <div>Jika user menginput angka minus/nol (contoh: <code>-50000</code>), batalkan simpan dan tampilkan banner alert persis: <span class="font-bold text-sky-800">"Nominal harus lebih dari 0"</span>.</div>
+                </div>
+              </div>
+              <div class="p-2 bg-slate-900 rounded-lg text-sky-300 font-mono text-[10px]">
+                if (nominal <= 0) return showAlert("Nominal harus lebih dari 0");
+              </div>
+            </div>
+
+            <!-- Pillar 3: Credential Isolation -->
+            <div class="glass-card rounded-2xl p-4 border border-sky-300 flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-sky-800 uppercase tracking-wide">PILAR 3: ISOLASI KREDENSIAL</span>
+                  <span class="text-[10px] font-mono bg-sky-100 text-sky-800 px-2 py-0.5 rounded font-bold">AUTH SAFETY</span>
+                </div>
+                <div class="text-xs text-slate-700 leading-relaxed space-y-1">
+                  <div>Hanya gunakan <strong>SUPABASE_ANON_KEY</strong> (Public Key) di frontend.</div>
+                  <div><strong class="text-rose-700">Dilarang Keras:</strong> Menaruh <code>service_role_key</code> atau <code>STITCH_API_KEY</code> di dalam file <code>index.html</code> publik.</div>
+                </div>
+              </div>
+              <div class="p-2 bg-slate-900 rounded-lg text-emerald-400 font-mono text-[10px]">
+                const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+              </div>
+            </div>
+
+            <!-- Pillar 4: Git Guardrails -->
+            <div class="glass-card rounded-2xl p-4 border border-emerald-300 bg-emerald-50/30 flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide">PILAR 4: PROTEKSI .GITIGNORE</span>
+                  <span class="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">REPO LEAK PROOF</span>
+                </div>
+                <div class="text-xs text-slate-700 leading-relaxed space-y-1">
+                  <div>Sebelum push ke GitHub, pastikan file <code>.gitignore</code> mengecualikan berkas sensitif: <code>.env</code>, <code>.vscode/mcp.json</code>, dan token pribadi.</div>
+                </div>
+              </div>
+              <div class="p-2 bg-slate-900 rounded-lg text-slate-300 font-mono text-[10px]">
+                .env* &bull; .vscode/mcp.json &bull; .cursor/mcp.json
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 09: LANGKAH 4 - SUPABASE & WIRING    -->
+      <!-- ========================================== -->
+      <section id="slide-9" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>LANGKAH 4 &bull; MENIT 45–75</span>
+              <span>&bull;</span>
+              <span>DATABASE CLOUD &amp; WIRING</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Supabase Cloud DB &amp; Defense in Depth
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Validasi ganda: Mengunci aturan TC-01 langsung di level database PostgreSQL via CHECK constraint.
+            </p>
+          </div>
+
+          <!-- Split: Left SQL Editor, Right Defense in Depth Diagram -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+            
+            <!-- Left: SQL Code Panel (7 cols) -->
+            <div class="lg:col-span-7 glass-code-dark rounded-2xl p-4 flex flex-col justify-between space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-sky-900/60">
+                <span class="text-xs font-mono font-bold text-sky-300">SQL Editor Supabase (Salin &amp; Jalankan)</span>
+                <button onclick="copyToClipboard('codeSQL')" class="text-[11px] font-mono px-2.5 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white font-semibold transition flex items-center space-x-1">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Salin SQL</span>
+                </button>
+              </div>
+
+              <pre id="codeSQL" class="text-[11px] font-mono text-slate-300 overflow-y-auto max-h-[220px] leading-relaxed p-2 select-text">-- 1. Buat Tabel cash_transactions sesuai Modul 2 SKPL
+CREATE TABLE IF NOT EXISTS public.cash_transactions (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    tanggal DATE NOT NULL DEFAULT CURRENT_DATE,
+    jenis_transaksi TEXT NOT NULL CHECK (jenis_transaksi IN ('Masuk', 'Keluar')),
+    nominal NUMERIC(12, 2) NOT NULL CHECK (nominal > 0), -- Kunci TC-01 di Database!
+    keterangan TEXT NOT NULL CHECK (char_length(trim(keterangan)) > 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 2. Aktifkan Row Level Security (RLS)
+ALTER TABLE public.cash_transactions ENABLE ROW LEVEL SECURITY;
+
+-- 3. Kebijakan CRUD Publik untuk Key Anon (Workshop)
+CREATE POLICY "Akses publik CRUD kas kelas"
+ON public.cash_transactions FOR ALL TO anon
+USING (true) WITH CHECK (nominal > 0);</pre>
+
+              <div class="text-[10px] font-mono text-emerald-400 pt-2 border-t border-slate-800">
+                Check Constraint (nominal &gt; 0) memastikan hacker tidak bisa bypass via curl/Postman.
+              </div>
+            </div>
+
+            <!-- Right: Defense in Depth Concept (5 cols) -->
+            <div class="lg:col-span-5 glass-card rounded-2xl p-5 border border-sky-200 flex flex-col justify-between space-y-4">
+              <div>
+                <span class="text-xs font-bold text-slate-800 uppercase tracking-wide block mb-3">Arsitektur Pertahanan Berlapis (Defense in Depth)</span>
+
+                <div class="space-y-3 text-xs">
+                  <div class="p-3 rounded-xl bg-white/80 border border-sky-200 flex items-start space-x-3">
+                    <div class="w-6 h-6 rounded-lg bg-sky-100 text-sky-800 font-mono font-bold text-xs flex items-center justify-center flex-shrink-0">L1</div>
+                    <div>
+                      <div class="font-bold text-slate-900">Validasi Frontend (JavaScript)</div>
+                      <div class="text-[11px] text-slate-600 mt-0.5">Mencegah angka minus sebelum tombol kirim ditekan (Respons instan untuk user).</div>
+                    </div>
+                  </div>
+
+                  <div class="p-3 rounded-xl bg-white/80 border border-sky-200 flex items-start space-x-3">
+                    <div class="w-6 h-6 rounded-lg bg-sky-100 text-sky-800 font-mono font-bold text-xs flex items-center justify-center flex-shrink-0">L2</div>
+                    <div>
+                      <div class="font-bold text-slate-900">API Gateway &amp; Row Level Security</div>
+                      <div class="text-[11px] text-slate-600 mt-0.5">Memvalidasi izin operasi anon key dan memblokir modifikasi tidak sah.</div>
+                    </div>
+                  </div>
+
+                  <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start space-x-3">
+                    <div class="w-6 h-6 rounded-lg bg-emerald-600 text-white font-mono font-bold text-xs flex items-center justify-center flex-shrink-0">L3</div>
+                    <div>
+                      <div class="font-bold text-emerald-900">Database Engine Check Constraint</div>
+                      <div class="text-[11px] text-emerald-800 mt-0.5">Jika hacker menembak API langsung, PostgreSQL tetap membatalkan transaksi.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-sky-100 text-sky-900 text-[11px] font-bold text-center">
+                Konsep ini menjadi nilai plus besar saat mahasiswa mempresentasikan portofolio!
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 10: LANGKAH 5A - DEVTOOLS F12 QA     -->
+      <!-- ========================================== -->
+      <section id="slide-10" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>LANGKAH 5A &bull; MENIT 75–90</span>
+              <span>&bull;</span>
+              <span>INSPEKSI TEKNIS BROWSER</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Inspeksi Fungsional via Browser DevTools (F12)
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Mendidik mahasiswa berpikir selayaknya Senior QA Engineer: menguji status code, network payload, dan console.
+            </p>
+          </div>
+
+          <!-- DevTools Mock Inspector UI -->
+          <div class="glass-code-dark rounded-2xl p-5 border border-sky-400/30 flex-1 flex flex-col justify-between space-y-4">
+            
+            <!-- DevTools Top Bar -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700/80">
+              <div class="flex items-center space-x-3 text-xs">
+                <span class="text-slate-400 font-mono">DevTools (F12)</span>
+                <span class="text-slate-600">&bull;</span>
+                <span class="text-sky-300 font-bold border-b-2 border-sky-400 pb-0.5">Network (Fetch/XHR)</span>
+                <span class="text-slate-400 hover:text-slate-200 cursor-pointer">Console (0)</span>
+                <span class="text-slate-400 hover:text-slate-200 cursor-pointer">Application</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+                <span class="text-[10px] font-mono text-emerald-400">ONLINE (201 OK)</span>
+              </div>
+            </div>
+
+            <!-- Network Table Mockup -->
+            <div class="overflow-x-auto text-[11px] font-mono">
+              <table class="w-full text-left">
+                <thead class="text-slate-400 border-b border-slate-800 text-[10px] uppercase">
+                  <tr>
+                    <th class="py-1.5 px-3">Name</th>
+                    <th class="py-1.5 px-3">Status</th>
+                    <th class="py-1.5 px-3">Type</th>
+                    <th class="py-1.5 px-3">Time</th>
+                    <th class="py-1.5 px-3">Payload Sample</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                  <tr class="bg-slate-800/30">
+                    <td class="py-2 px-3 text-sky-300 font-semibold">cash_transactions</td>
+                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">201 Created</span></td>
+                    <td class="py-2 px-3 text-slate-400">fetch</td>
+                    <td class="py-2 px-3 text-slate-400">42 ms</td>
+                    <td class="py-2 px-3 text-slate-400">{"jenis": "Masuk", "nominal": 20000}</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 px-3 text-slate-300">cash_transactions?order=tanggal.desc</td>
+                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded bg-sky-950 text-sky-400 font-bold border border-sky-800">200 OK</span></td>
+                    <td class="py-2 px-3 text-slate-400">fetch</td>
+                    <td class="py-2 px-3 text-slate-400">38 ms</td>
+                    <td class="py-2 px-3 text-slate-400">[Array(3)] Data Mutasi</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Test Cases Execution Verification -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-800">
+              <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-between">
+                <div>
+                  <div class="text-[10px] font-mono text-slate-400">UJI TC-01 (NOMINAL -50000)</div>
+                  <div class="text-xs font-bold text-white mt-0.5">Tolak &amp; Pesan "Nominal harus lebih dari 0"</div>
+                </div>
+                <span class="px-2 py-1 rounded text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">PASS</span>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-between">
+                <div>
+                  <div class="text-[10px] font-mono text-slate-400">UJI TC-02 (PEMASUKAN +20000)</div>
+                  <div class="text-xs font-bold text-white mt-0.5">Status 201 Created &amp; Saldo +Rp 20.000</div>
+                </div>
+                <span class="px-2 py-1 rounded text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">PASS</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 11: LANGKAH 5B & 6 - LIVE XSS & VERCEL-->
+      <!-- ========================================== -->
+      <section id="slide-11" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full">
+          
+          <div>
+            <div class="flex items-center space-x-2 text-sky-700 text-xs font-bold tracking-wider uppercase mb-1">
+              <span>LANGKAH 5B &amp; 6 &bull; MENIT 90–120</span>
+              <span>&bull;</span>
+              <span>LIVE HACKING &amp; CLOUD DEPLOY</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Live Hacking XSS &amp; Auto-Deploy ke Vercel
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base mt-1">
+              Momen puncak workshop: Membuktikan ketahanan dari serangan script injection dan merilis web publik.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1">
+            
+            <!-- Left: Live XSS Attack Simulation -->
+            <div class="glass-card rounded-2xl p-5 border border-rose-300 bg-rose-50/20 flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-rose-800 uppercase tracking-wide">SIMULASI LIVE HACKING XSS (TC-03)</span>
+                  <span class="text-[10px] font-mono text-rose-700 font-bold bg-rose-100 px-2 py-0.5 rounded">SHOWCASE UTAMA</span>
+                </div>
+                
+                <div class="text-xs text-slate-700 leading-relaxed mb-2">
+                  Masukkan payload hacker ini ke form transaksi pada kolom <strong>Keterangan</strong>:
+                </div>
+
+                <div class="p-3 bg-slate-900 rounded-xl text-rose-300 font-mono text-xs overflow-x-auto border border-rose-900/60 select-text">
+                  &lt;img src="x" onerror="alert('Waduh! Kas Kelas Jebol Kena XSS!')"&gt;
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+                  <div class="p-2.5 rounded-xl bg-rose-100/70 border border-rose-300">
+                    <div class="font-bold text-rose-900 text-[11px]">Versi Rentan (.innerHTML)</div>
+                    <div class="text-[10px] text-rose-800 mt-1">Muncul alert pop-up meledak di browser setiap kali kas dibuka. <strong>JEBOL!</strong></div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-emerald-100/70 border border-emerald-300">
+                    <div class="font-bold text-emerald-900 text-[11px]">Versi RULES.md (.textContent)</div>
+                    <div class="text-[10px] text-emerald-800 mt-1">Script hanya tampil sebagai teks biasa tanpa dieksekusi. <strong>100% AMAN!</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-[11px] text-slate-600 font-medium">
+                Mahasiswa RKS &amp; TI akan melihat secara nyata pentingnya Secure Coding.
+              </div>
+            </div>
+
+            <!-- Right: Vercel Deploy Pipeline -->
+            <div class="glass-card rounded-2xl p-5 border border-sky-300 flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-sky-800 uppercase tracking-wide">LANGKAH 6: DEPLOY KE VERCEL (MENIT 105–120)</span>
+                  <span class="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded">LIVE PRODUCTION</span>
+                </div>
+
+                <div class="text-xs text-slate-700 leading-relaxed mb-2">
+                  4 Langkah ringkas menuju link portofolio resmi:
+                </div>
+
+                <div class="space-y-2 text-xs font-mono">
+                  <div class="p-2 bg-slate-900 rounded-lg text-slate-300">
+                    <span class="text-slate-500">1. Pastikan .gitignore terpasang (Anti-leak)</span>
+                  </div>
+                  <div class="p-2 bg-slate-900 rounded-lg text-slate-300">
+                    <span class="text-sky-400">git add . &amp;&amp; git commit -m "feat: skpl-10 complete"</span>
+                  </div>
+                  <div class="p-2 bg-slate-900 rounded-lg text-slate-300">
+                    <span class="text-sky-400">git push origin main</span>
+                  </div>
+                  <div class="p-2 bg-slate-900 rounded-lg text-emerald-400">
+                    <span class="text-slate-500">4. Import ke vercel.com -&gt; Deploy!</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-emerald-100 text-emerald-950 text-xs font-bold flex items-center justify-between border border-emerald-300">
+                <span>Output Akhir:</span>
+                <span class="font-mono text-emerald-800">https://kas-kelas-pnc.vercel.app</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 12: KONKLUSI & DELIVERABLE           -->
+      <!-- ========================================== -->
+      <section id="slide-12" class="slide-view hidden-slide w-full h-full flex flex-col justify-between py-2 sm:py-4">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between gap-6 shadow-xl border border-white/80 h-full text-center">
+          
+          <div class="max-w-3xl mx-auto space-y-4">
+            <span class="px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-sky-100 text-sky-800 border border-sky-300 inline-block">
+              THE ENGINEER'S MANDATE
+            </span>
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              "AI Menulis Kode Agar Cepat Jalan, <br class="hidden sm:inline">
+              <span class="text-sky-700">Insinyur Memastikannya Aman."</span>
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+              Selamat kepada 88 mahasiswa Politeknik Negeri Cilacap! Hari ini kalian tidak sekadar menyalin kode, melainkan mempraktikkan standar rekayasa perangkat lunak modern.
+            </p>
+          </div>
+
+          <!-- Submission Checklist Card -->
+          <div class="max-w-2xl mx-auto w-full glass-card rounded-2xl p-5 border border-sky-200/90 text-left space-y-3">
+            <div class="text-xs font-bold text-slate-800 uppercase tracking-wider pb-2 border-b border-sky-100">
+              Checklist Pengumpulan Tugas Akhir Hari Ini
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center space-x-3 p-2 rounded-lg bg-white/70 border border-slate-200">
+                <span class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">1</span>
+                <span class="text-slate-800">Tautan Repositori GitHub Publik (Bersih tanpa file <code>.env</code> / rahasia).</span>
+              </div>
+              <div class="flex items-center space-x-3 p-2 rounded-lg bg-white/70 border border-slate-200">
+                <span class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+                <span class="text-slate-800">Tautan Live Aplikasi Vercel (Aktif dan dapat diakses dari browser HP).</span>
+              </div>
+              <div class="flex items-center space-x-3 p-2 rounded-lg bg-white/70 border border-slate-200">
+                <span class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">3</span>
+                <span class="text-slate-800">Tangkapan Layar DevTools F12 Lolos Uji <code>TC-01</code>, <code>TC-02</code>, dan Anti-XSS.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Speaker Contact -->
+          <div class="pt-4 border-t border-slate-200/80 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-600 font-medium">
+            <span>Faiz &bull; Data Sorcerers Yogyakarta</span>
+            <span>&bull;</span>
+            <span>Workshop Vibe Coding &amp; Secure Coding 2026</span>
+            <span>&bull;</span>
+            <span class="text-sky-700 font-bold">Politeknik Negeri Cilacap</span>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- BOTTOM FLOATING NAVIGATION DOCK -->
+  <footer class="relative z-30 h-16 border-t border-white/60 bg-white/75 backdrop-blur-xl px-4 sm:px-8 flex items-center justify-between shadow-lg">
+    
+    <!-- Left Navigation Button -->
+    <button id="btnPrev" title="Slide Sebelumnya (Arrow Left)" class="px-3 sm:px-4 py-2 rounded-xl text-slate-700 hover:text-sky-800 bg-white/80 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 font-semibold text-xs transition flex items-center space-x-2 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span class="hidden sm:inline">Sebelumnya</span>
+    </button>
+
+    <!-- Center: Interactive Quick Dots Indicator -->
+    <div id="slideDotsContainer" class="flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto max-w-[60vw] py-1 px-2">
+      <!-- Dots populated dynamically by JavaScript -->
+    </div>
+
+    <!-- Right Navigation Button -->
+    <button id="btnNext" title="Slide Berikutnya (Arrow Right / Space)" class="px-3 sm:px-4 py-2 rounded-xl text-white bg-sky-600 hover:bg-sky-700 font-semibold text-xs transition flex items-center space-x-2 shadow-md shadow-sky-600/20 disabled:opacity-40 disabled:cursor-not-allowed">
+      <span class="hidden sm:inline">Berikutnya</span>
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </button>
+
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SLIDE GRID OVERVIEW (G)             -->
+  <!-- ========================================== -->
+  <div id="overviewModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-5xl rounded-3xl p-6 border border-white/90 shadow-2xl max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-4 border-b border-sky-100">
+        <div class="flex items-center space-x-2">
+          <span class="text-sm font-bold text-slate-900">NAVIGASI CEPAT SLIDE (12 SLIDE)</span>
+          <span class="text-[11px] font-mono bg-sky-100 text-sky-800 px-2 py-0.5 rounded">Tekan Escape untuk keluar</span>
+        </div>
+        <button id="btnCloseOverview" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Grid Cards -->
+      <div id="gridSlidesContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 overflow-y-auto p-2 mt-4">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- DRAWER: SPEAKER NOTES FAIZ (N)            -->
+  <!-- ========================================== -->
+  <div id="notesDrawer" class="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-white/95 backdrop-blur-2xl border-l border-sky-200/80 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+    <div class="p-4 border-b border-sky-100 flex items-center justify-between bg-sky-50/50">
+      <div class="flex items-center space-x-2">
+        <svg class="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <span class="text-xs font-bold text-slate-900 tracking-wide uppercase">SPEAKER NOTES FAIZ</span>
+      </div>
+      <button id="btnCloseNotes" class="p-1 rounded-lg text-slate-500 hover:text-slate-800">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Notes Content Area -->
+    <div id="notesContent" class="flex-1 overflow-y-auto p-5 space-y-4 text-xs text-slate-700 leading-relaxed">
+      <!-- Injected by JS based on current slide -->
+    </div>
+
+    <div class="p-3 bg-sky-50/70 border-t border-sky-100 text-[11px] text-slate-500 flex items-center justify-between">
+      <span>Gunakan tombol N untuk tutup</span>
+      <span class="font-mono text-sky-700 font-bold">Faiz Zoom Prep</span>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="fixed bottom-20 right-6 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl border border-sky-400/40 transform translate-y-10 opacity-0 transition-all duration-200 pointer-events-none flex items-center space-x-2">
+    <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastMsg">Teks berhasil disalin!</span>
+  </div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script>
+    const TOTAL_SLIDES = 12;
+    let currentSlide = 1;
+
+    // Speaker Notes Data mapped from Master Flow Guide
+    const speakerNotesData = {
+      1: `<strong>POIN BAHASAN SLIDE 1 (COVER):</strong><br><br>
+        &bull; Buka sesi dengan menyapa 88 peserta dari 5 prodi (RKS, TI, TRPL, ALKS, TRM).<br>
+        &bull; Tegaskan bahwa hari ini adalah <strong>puncak eksekusi (Day 4)</strong>: menggabungkan SKPL & RAB dari Day 2 serta UI Google Stitch Day 3 menjadi aplikasi nyata yang online di Vercel.<br>
+        &bull; Tunjukkan preview kas kelas di kanan: kita membangun aplikasi yang aman dari serangan dan deterministic.`,
+      
+      2: `<strong>POIN BAHASAN SLIDE 2 (HAK VETO BAB 6):</strong><br><br>
+        &bull; Minta peserta membuka PDF SKPL masing-masing di nomor 4 dan nomor 6.<br>
+        &bull; Jelaskan klausul Bab 6: <em>Format dari Narasumber bersifat mutlak dan mengesampingkan template dasar</em>.<br>
+        &bull; Mengapa PHP/XAMPP diganti? Jika 88 peserta setup XAMPP via Zoom, waktu 2 jam akan habis hanya untuk memperbaiki port 3306 bentrok dan tidak bisa di-deploy gratis ke Vercel.<br>
+        &bull; Stack baru kita (HTML + Tailwind + Supabase + Vercel) adalah standar industri modern.`,
+      
+      3: `<strong>POIN BAHASAN SLIDE 3 (MINDSET SHIFT):</strong><br><br>
+        &bull; Beri peringatan keras terhadap <em>Blind Prompting</em>: meminta AI tanpa pagar menghasilkan kode rentan XSS dan skema rusak.<br>
+        &bull; Kenalkan konsep <strong>Triad Pengendali</strong>: PRD.md (Otak Bisnis), DESIGN.md (Aturan Visual), dan RULES.md (Pagar Keamanan).<br>
+        &bull; Insinyur sejati mengendalikan AI, bukan dikendalikan AI.`,
+      
+      4: `<strong>POIN BAHASAN SLIDE 4 (MASTER ROADMAP 120M):</strong><br><br>
+        &bull; Paparkan 6 tonggak waktu 120 menit:<br>
+        1. 09.25-09.40 (15m): Bedah SKPL & PRD.md<br>
+        2. 09.40-10.00 (20m): Generate UI Google Stitch<br>
+        3. 10.00-10.10 (10m): Pasang RULES.md<br>
+        4. 10.10-10.40 (30m): Supabase Cloud DB & Wiring<br>
+        5. 10.40-11.05 (25m): DevTools QA & Live Hacking XSS<br>
+        6. 11.05-11.15 (10m): Deploy ke Vercel & Live Link!`,
+      
+      5: `<strong>POIN BAHASAN SLIDE 5 (10 MODUL SKPL):</strong><br><br>
+        &bull; Sampaikan kepada pemegang SKPL 1 sampai 9: <em>"Kalian jangan panik, cara mainnya 100% sama persis!"</em><br>
+        &bull; Kita gunakan SKPL_10 (Kas Kelas) sebagai model acuan live coding.<br>
+        &bull; Tunjukkan bahwa tabel Modul 1 PDF panitia hanya menulis REQ-01 & REQ-02, tetapi kita upgrade menjadi 4 REQ utuh (CRUD lengkap).`,
+      
+      6: `<strong>POIN BAHASAN SLIDE 6 (BEDAH SKPL & PRD):</strong><br><br>
+        &bull; Praktikkan mengirim prompt ke AI Chat untuk membuat berkas PRD.md.<br>
+        &bull; Tekankan penguncian Test Case resmi panitia: TC-01 (tolak negatif -50000 dengan teks <em>"Nominal harus lebih dari 0"</em>) dan TC-02 (tambah pemasukan +20000).`,
+      
+      7: `<strong>POIN BAHASAN SLIDE 7 (GOOGLE STITCH UI):</strong><br><br>
+        &bull; Jawab pertanyaan Adit (panitia) terkait MCP (Model Context Protocol) untuk menarik desain langsung ke IDE.<br>
+        &bull; Untuk 88 peserta, arahkan memakai <strong>Jalur B (Export HTML)</strong> agar terhindar dari kendala token/Node.js.<br>
+        &bull; Tunjukkan struktur layout: 1/3 Kolom Form Catat Kas + 2/3 Kolom Tabel Riwayat.`,
+      
+      8: `<strong>POIN BAHASAN SLIDE 8 (RULES.MD KEAMANAN):</strong><br><br>
+        &bull; Minta mahasiswa RKS & TI mencermati pilar ini.<br>
+        &bull; AI secara default suka memakai <code>.innerHTML</code>. Ini celah XSS fatal! Lewat RULES.md, kita wajibkan <code>.textContent</code>.<br>
+        &bull; Bahas perbedaan aman <code>anon key</code> vs bahaya membocorkan <code>service_role_key</code>.`,
+      
+      9: `<strong>POIN BAHASAN SLIDE 9 (SUPABASE & DEFENSE IN DEPTH):</strong><br><br>
+        &bull; Buka SQL Editor Supabase secara live.<br>
+        &bull; Soroti baris: <code>CHECK (nominal &gt; 0)</code>.<br>
+        &bull; Jelaskan <strong>Defense in Depth</strong>: jika hacker membypass form frontend dan menembak API Supabase langsung, database PostgreSQL tetap menolak angka negatif.`,
+      
+      10: `<strong>POIN BAHASAN SLIDE 10 (DEVTOOLS QA F12):</strong><br><br>
+        &bull; Ajak seluruh peserta menekan tombol F12 di browser.<br>
+        &bull; Uji TC-01: Masukkan -50000 -> Muncul pesan merah persis <em>"Nominal harus lebih dari 0"</em>.<br>
+        &bull; Uji TC-02: Masukkan +20000 -> Tunjukkan status Network <strong>201 Created</strong> dan saldo bertambah Rp 20.000.`,
+      
+      11: `<strong>POIN BAHASAN SLIDE 11 (LIVE HACKING & VERCEL):</strong><br><br>
+        &bull; <strong>Showstopper Demo:</strong> Masukkan payload <code>&lt;img src="x" onerror="alert(...)"&gt;</code> ke versi rentan vs versi aman.<br>
+        &bull; Tunjukkan bukti bahwa aplikasi kita 100% kebal karena render <code>.textContent</code>.<br>
+        &bull; Lanjut pandu peserta melakukan git push dan import ke Vercel sampai keluar tautan live.`,
+      
+      12: `<strong>POIN BAHASAN SLIDE 12 (KONKLUSI & PENGUMPULAN):</strong><br><br>
+        &bull; Tutup dengan quote: <em>"AI menulis kode agar cepat jalan, Insinyur memastikannya aman."</em><br>
+        &bull; Rangkum 3 deliverable tugas akhir hari ini: Repo GitHub publik, Link Vercel live, dan bukti lolos uji TC-01 & TC-02.<br>
+        &bull; Buka sesi Q&A Zoom.`,
+    };
+
+    const slideTitles = [
+      "01. Cover & Orientasi Puncak Day 4",
+      "02. Konteks Peserta & Wewenang Bab 6",
+      "03. Mindset Shift: Blind vs Spec-Driven",
+      "04. Master Roadmap 6 Langkah (120m)",
+      "05. Pemetaan 10 SKPL & Kasus Kas Kelas",
+      "06. Langkah 1: Bedah SKPL & PRD.md",
+      "07. Langkah 2: UI Google Stitch ke VS Code",
+      "08. Langkah 3: Pagar Keamanan RULES.md",
+      "09. Langkah 4: Cloud DB & Defense in Depth",
+      "10. Langkah 5A: Inspeksi DevTools F12",
+      "11. Langkah 5B & 6: Live XSS & Vercel Deploy",
+      "12. Konklusi & Deliverable Mandate",
+    ];
+
+    // Initialize Slide Deck
+    function init() {
+      renderDots();
+      renderGridOverview();
+      updateSlide(1);
+      setupEvents();
+    }
+
+    function updateSlide(targetIndex) {
+      if (targetIndex < 1 || targetIndex > TOTAL_SLIDES) return;
+
+      // Hide all slides
+      for (let i = 1; i <= TOTAL_SLIDES; i++) {
+        const slide = document.getElementById(`slide-${i}`);
+        if (slide) {
+          slide.classList.remove('active-slide');
+          slide.classList.add('hidden-slide');
+        }
+      }
+
+      // Show targeted slide
+      const currentElement = document.getElementById(`slide-${targetIndex}`);
+      if (currentElement) {
+        currentElement.classList.remove('hidden-slide');
+        currentElement.classList.add('active-slide');
+      }
+
+      currentSlide = targetIndex;
+
+      // Update Header & Progress
+      document.getElementById('currentSlideNum').textContent = String(currentSlide).padStart(2, '0');
+      const progressPercent = (currentSlide / TOTAL_SLIDES) * 100;
+      document.getElementById('slideProgressBar').style.width = `${progressPercent}%`;
+
+      // Update Dots UI
+      const dots = document.querySelectorAll('.slide-dot');
+      dots.forEach((dot, idx) => {
+        if (idx + 1 === currentSlide) {
+          dot.className = 'slide-dot w-6 h-2 rounded-full bg-sky-600 transition-all';
+        } else {
+          dot.className = 'slide-dot w-2 h-2 rounded-full bg-slate-300 hover:bg-sky-400 transition-all';
+        }
+      });
+
+      // Update Nav Buttons
+      document.getElementById('btnPrev').disabled = (currentSlide === 1);
+      document.getElementById('btnNext').disabled = (currentSlide === TOTAL_SLIDES);
+
+      // Update Speaker Notes Content
+      const notesContainer = document.getElementById('notesContent');
+      if (notesContainer) {
+        notesContainer.innerHTML = speakerNotesData[currentSlide] || "Tidak ada catatan untuk slide ini.";
+      }
+    }
+
+    function renderDots() {
+      const container = document.getElementById('slideDotsContainer');
+      container.innerHTML = '';
+      for (let i = 1; i <= TOTAL_SLIDES; i++) {
+        const btn = document.createElement('button');
+        btn.className = `slide-dot ${i === 1 ? 'w-6 h-2 bg-sky-600' : 'w-2 h-2 bg-slate-300'} rounded-full transition-all`;
+        btn.title = `Pindah ke slide ${i}`;
+        btn.addEventListener('click', () => updateSlide(i));
+        container.appendChild(btn);
+      }
+    }
+
+    function renderGridOverview() {
+      const grid = document.getElementById('gridSlidesContainer');
+      grid.innerHTML = '';
+      slideTitles.forEach((title, idx) => {
+        const card = document.createElement('button');
+        card.className = 'p-3.5 rounded-xl bg-white/80 hover:bg-sky-50 border border-sky-100 hover:border-sky-400 text-left transition flex flex-col justify-between space-y-2 shadow-sm';
+        card.innerHTML = `
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-mono font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">${String(idx + 1).padStart(2, '0')}</span>
+            <span class="text-[10px] text-slate-400 font-mono">Slide</span>
+          </div>
+          <div class="text-xs font-bold text-slate-800 line-clamp-2">${title}</div>
+        `;
+        card.addEventListener('click', () => {
+          updateSlide(idx + 1);
+          closeOverviewModal();
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function setupEvents() {
+      // Prev / Next Buttons
+      document.getElementById('btnPrev').addEventListener('click', () => updateSlide(currentSlide - 1));
+      document.getElementById('btnNext').addEventListener('click', () => updateSlide(currentSlide + 1));
+
+      // Overview Grid Toggle
+      const overviewModal = document.getElementById('overviewModal');
+      document.getElementById('btnOverview').addEventListener('click', () => {
+        overviewModal.classList.toggle('hidden');
+        overviewModal.classList.toggle('flex');
+      });
+      document.getElementById('btnCloseOverview').addEventListener('click', closeOverviewModal);
+
+      // Speaker Notes Drawer Toggle
+      const notesDrawer = document.getElementById('notesDrawer');
+      const toggleNotes = () => {
+        notesDrawer.classList.toggle('translate-x-full');
+      };
+      document.getElementById('btnNotes').addEventListener('click', toggleNotes);
+      document.getElementById('btnCloseNotes').addEventListener('click', toggleNotes);
+
+      // Fullscreen Toggle
+      document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+
+      // Keyboard Shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+          e.preventDefault();
+          updateSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          updateSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          updateSlide(1);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          updateSlide(TOTAL_SLIDES);
+        } else if (e.key.toLowerCase() === 'g') {
+          e.preventDefault();
+          overviewModal.classList.toggle('hidden');
+          overviewModal.classList.toggle('flex');
+        } else if (e.key.toLowerCase() === 'n') {
+          e.preventDefault();
+          toggleNotes();
+        } else if (e.key.toLowerCase() === 'f') {
+          e.preventDefault();
+          toggleFullscreen();
+        } else if (e.key === 'Escape') {
+          closeOverviewModal();
+          if (!notesDrawer.classList.contains('translate-x-full')) {
+            notesDrawer.classList.add('translate-x-full');
+          }
+        }
+      });
+
+      // Mobile Touch Gesture Support (Swipe left/right)
+      let touchStartX = 0;
+      let touchEndX = 0;
+      window.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      window.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, { passive: true });
+
+      function handleSwipe() {
+        const threshold = 60;
+        if (touchStartX - touchEndX > threshold) {
+          updateSlide(currentSlide + 1); // Swipe left -> Next
+        } else if (touchEndX - touchStartX > threshold) {
+          updateSlide(currentSlide - 1); // Swipe right -> Prev
+        }
+      }
+    }
+
+    function closeOverviewModal() {
+      const modal = document.getElementById('overviewModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function copyToClipboard(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Teks berhasil disalin ke clipboard!");
+      }).catch(() => {
+        showToast("Gagal menyalin teks.");
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-10', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2500);
+    }
+
+    // Run on mount
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

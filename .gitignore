@@ -1,0 +1,21 @@
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Editor & MCP tokens
+.vscode/mcp.json
+.cursor/mcp.json
+claude_desktop_config.json
+
+# Dependencies
+node_modules/
+.npm
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vercel output
+.vercel
